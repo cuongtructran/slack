@@ -677,7 +677,7 @@ func (api *Client) SetUserCustomFields(userID string, customFields map[string]Us
 //
 // For more information see SetUserCustomFields
 // Copied from: https://github.com/slack-go/slack/pull/474/files
-func (api *Client) SetUserCustomFieldsContext(ctx context.Context, userID string, customFields map[string]UserProfileCustomField) error {
+func (api *Client) SetUserCustomFieldsContext(ctx context.Context, user string, customFields map[string]UserProfileCustomField) error {
 
 	// Convert data to data type with custom marshall / unmarshall
 	// For more information, see UserProfileCustomFields definition.
@@ -699,12 +699,16 @@ func (api *Client) SetUserCustomFieldsContext(ctx context.Context, userID string
 
 	values := url.Values{
 		"token":   {api.token},
-		"user":    {userID},
 		"profile": {string(profile)},
 	}
 
+	// optional field. It should not be set if empty
+	if user != "" {
+		values["user"] = []string{user}
+	}
+
 	response := &userResponseFull{}
-	if err := postForm(ctx, api.httpclient, APIURL+"users.profile.set", values, response, api); err != nil {
+	if err = api.postMethod(ctx, "users.profile.set", values, response); err != nil {
 		return err
 	}
 
